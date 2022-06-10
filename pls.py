@@ -1,3 +1,4 @@
+from _typeshed import Self
 from typing import ItemsView
 
 
@@ -26,15 +27,17 @@ class catalog:
         ansList = []
         for book in self.bookList:
             if searchTerm == book.title:
-                return "Title: %s, Author: %s"
+                ansList.append(book)
             if searchTerm == book.author:
-                return book
-        return "Book not found"
+                ansList.appen(book)
+     
+        return ansList
+        
     
     def addBooks(self):
         pass
 
-    def viewbooks(self):
+    def viewbooks(self, books = Self.bookList):
         pass
 
 class Book:
@@ -49,7 +52,7 @@ class Book:
         self.ISBN = ISBN
         self.year = year
     
-class BookItem(book)
+class BookItem(Book):
 
     def __init__(self,amount):
         Book.__init__(self)
