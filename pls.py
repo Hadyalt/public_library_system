@@ -1,5 +1,4 @@
-from _typeshed import Self
-from typing import ItemsView
+
 import csv
 
 class Person:
@@ -20,9 +19,13 @@ class Admin(Person):
    def __init__(self):
     Person.__init__(self,"admin","admin123")
 
-    def AddMember():
-        
+   def AddMember():
 
+        with open("Members.csv",'r') as csv_file:
+            csv_reader = csv.reader(csv_file)
+            next(csv_reader)
+            for line in csv_reader:
+                print(line)
 class catalog:
     def __init__ (self,bookList):
         self.bookList = bookList
@@ -71,4 +74,4 @@ class BookItem(Book):
 
 
 x = Admin()
-print(x.password)
+x.AddMember()
