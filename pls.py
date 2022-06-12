@@ -1,6 +1,4 @@
 import json
-from os import link
-
 
 class Person:
    def __init__(self,username, password):
@@ -51,12 +49,14 @@ class catalog:
             ISBN = input()
             print("Input year: ")
             year = input()
-         
-            book = Book(author,country,imageLink,language,link,pages,title,ISBN,year) 
-            json_object = json.dumps(Book, indent=4) # convert book to serializable object
-            with open("Catalog.json","w") as p:
-                json.dump(book,p)
-            json_object = json.dumps(Book, indent=4)
+            
+            book_dict = {"author" : author,"country": country,"imageLink": imageLink,"language": language,"link": link,"pages": pages,"title":title,"ISBN": ISBN,"year":year}
+            catalog_dicts = [Book.__dict__ for book in self.bookList]
+            print(catalog_dicts)
+            catalog_dicts.append(book_dict)
+            with open("Catalog.json","a") as p:
+                json.dump(catalog_dicts,p,indent = 4)
+            
             if not (book in self.bookList):
                self.bookList.append(book)
             else:
@@ -169,9 +169,11 @@ class catalog:
 
     
     def addBooks(self,jsonName = "Books.json"):
+        self.loadJson()
         books = open(jsonName)      
         bookz = json.load(books)
         books.close()
+        bookdiclist = []
         for book in bookz:
             author = book['author'] 
             country = book['country']
@@ -183,9 +185,12 @@ class catalog:
             ISBN = book['ISBN']
             year = book['year']
             book1 = Book(author,country,imageLink,language,link,pages,title,ISBN,year)
-            if not (book1 in self.bookList):
-               self.bookList.append(book1) # make them write to catlog json use if(__class__.__name__ == Catalog add books to cat else add bookitems to library json)
-      
+            for x in self.bookList:
+               if x.ISBN == book1.ISBN and x.author == book1.author and x.title == book1.title and x.year == book1.year and book1.country == x.country and x.link == book1.link and x.pages == book1.pages and x.language == book1.language and x.imageLink == book1.imageLink:
+                bookdiclist.append(book)
+                self.bookList.append(book1) # make them write to catlog json use if(__class__.__name__ == Catalog add books to cat else add bookitems to library json)
+        with open("Catalog.json","w") as p:
+            json.dump(bookdiclist,p,indent = 4)
         
     def viewBooks(self, books = None):
         if books == None:
@@ -200,6 +205,33 @@ class catalog:
         else:
             return view
 
+    def loadJson(self):
+       try:
+            books = open("Catalog.json")      
+            bookz = json.load(books)
+            books.close()
+            for book in bookz:
+                author = book['author'] 
+                country = book['country']
+                imageLink = book['imageLink']
+                language = book['language']
+                link = book['link']
+                pages = book['pages']
+                title = book['title']
+                ISBN = book['ISBN']
+                year = book['year']
+                book1 = Book(author,country,imageLink,language,link,pages,title,ISBN,year)
+                check = False
+                for x in self.bookList:
+                    if x.ISBN == book1.ISBN and x.author == book1.author and x.title == book1.title and x.year == book1.year and book1.country == x.country and x.link == book1.link and x.pages == book1.pages and x.language == book1.language and x.imageLink == book1.imageLink:
+                        check = True
+                if check == False:
+                    self.bookList.append(book1)
+       except:
+           print("no books found")
+    
+    def saveJson(self):
+       pass
 
         
 class Book:
@@ -215,7 +247,7 @@ class Book:
         self.year = year
     
     def GetInfo(self):
-        return "[0] Title: " + self.title + "\n[1] Written by: " + self.author + "\n[2] country of origin: " + self.country +  "\n[3] Pages: " + str(self.pages) + "\n[4] Written in: " + self.language + "\n[5] ISBN: " + str(self.ISBN) + "\n[6] Link: " + self.link + "\n[7] Year of publication: " + str(self.year) + "\n[8] imageLink: " + self.imageLink +"\n"
+        return "[0] Title: " + self.title + "\n[1] Written by: " + self.author + "\n[2] country of origin: " + self.country +  "\n[3] Pages: " + str(self.pages) + "\n[4] Written in: " + self.language + "\n[5] ISBN: " + str(self.ISBN) + "\n[6] Link: " + self.link + "[7] Year of publication: " + str(self.year) + "\n[8] imageLink: " + self.imageLink +"\n"
     def GetBasic(self):
         return "|Title: " + self.title + " |Written by: " + self.author
     
@@ -229,7 +261,7 @@ class LoanItem(Book):
     
     def __init__(self,author,country,imageLink,language,link,pages,title,ISBN,year):
         Book.__init__(self,author,country,imageLink,language,link,pages,title,ISBN,year)
-        self.amount = 0
+        self.loaned = False
         
 
 class Library(catalog):
@@ -253,7 +285,8 @@ class Library(catalog):
             return "---- No books found ----"
         else:
             return view
-   def loanBook(self): # needs user to bind loan item to also update json library
+
+    def loanBook(self,username): # needs user to bind loan item to member also update json library 
      ans = ""
      while(ans != "x" and ans != "X"):
          break
@@ -267,8 +300,9 @@ b = BookItem("yeet","holland","notfound","Dutch","notfound",150,"super gilles",2
 b1 = BookItem("yeet","holland","notfound","Dutch","notfound",150,"wowzers",24039,2001)
 lib = Library([])
 cat = catalog([])
-cat.addBooks()
-cat.addBook()
+cat.loadJson()
 
-cat.searchBook()
+print(cat.viewBooks())
+cat.addBooks
+print(cat.viewBooks())
 
