@@ -1,116 +1,24 @@
 import json
-import csv
-from csv import writer
-from typing import List
 
 class Person:
-   def __init__(self,Username, Password):
-     self.Username = Username
-     self.Password = Password
+   def __init__(self,username, password):
+     self.username = username
+     self.password = password
 
-   def login():
-       #print("Please give your username") 
-       #username = input()
-       pass
-   
 class Member(Person):
-    def __init__(self,Number,GivenName,Surname,StreetAddress, ZipCode, City, EmailAddress, Username ,Password, TelephoneNumber):
-        Person.__init__(self,Username,Password)
-        self.Number = Number
-        self.GivenName = GivenName
-        self.Surname = Surname
-        self.StreetAddress = StreetAddress
-        self.ZipCode = ZipCode
-        self.City = City
-        self.EmailAddress = EmailAddress
-        self.TelephoneNumber = TelephoneNumber
-        
-    def __iter__(self):
-        return iter([self.Number, self.GivenName, self.Surname, self.StreetAddress, self.ZipCode, self.City, self.EmailAddress, self.Username, self.Password, self.TelephoneNumber,])
-    def infomember(self):
-        return "[0] number: " + self.Number + "\n[1] GivenName: " + self.GivenName + "\n[2] Surname: " + self.Surname +  "\n[3] StreetAddress: " + self.StreetAddress + "\n[4] ZipCode: " + self.ZipCode + "\n[5] ZipCode: " + self.City + "\n[6] EmailAddress: " + self.EmailAddress + "\n[7] Username: " + self.Username + "\n[8] Password: " + self.Password +"\n[9] telephonenumber:" +self.TelephoneNumber
+     def __init__(self,username,password):
+        Person.__init__(username,password)
+
 class Admin(Person):
    def __init__(self):
     Person.__init__(self,"admin","admin123")
-   def seememberlist(self):
-       with open("Members.csv",'r') as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter = ";")
-            next(csv_reader)
-            for member in csv_reader:
-                print(member)
-   def AddMember(self):
-     
-        with open("Members.csv",'r') as csv_file:
-            csv_reader = csv.reader(csv_file)
-            OldList = csv_reader
-            tester = 0
-            for line in OldList:
-                print(line)
-                tester +=1
-            NewNumber = tester 
-            '''
-            print("new GivenName:")
-            NewGivenName = input()
-            print("new Surname:")
-            NewSurname = input()
-            print("new StreetAddress")
-            NewStreetAddress = input()
-            print("new ZipCode")
-            NewZipCode = input()
-            print("new City")
-            NewCity = input()
-            print("new EmailAddress")
-            NewEmailAddress = input()
-            print("new Username")
-            NewUsername = input()
-            print("new Password")
-            NewPassword = input()
-            print("new TelephoneNumber")
-            NewTelephoneNumber = input()
-            '''
-        print(NewNumber)
-        NewGivenName = "hady"
-        NewSurname = "Al-tamimi"
-        NewStreetAddress = "Klaroen 8"
-        NewZipCode = "2907GB"
-        NewCity = "Rotterdam"
-        NewEmailAddress ="hadyaltamimi03@gmail.com"
-        NewUsername = "hady"
-        NewPassword = "hady123"
-        NewTelephoneNumber = "0612644634"
-        newmember = Member(NewNumber, NewGivenName,NewSurname,NewStreetAddress,NewZipCode,NewCity,NewEmailAddress,NewUsername,NewPassword,NewTelephoneNumber)
-        # NewMemberList = [NewNumber, NewGivenName,NewSurname,NewStreetAddress,NewZipCode,NewCity,NewEmailAddress,NewUsername,NewPassword,NewTelephoneNumber]
-        with open('Members.csv', 'a',newline='') as f_object:
-            writer_object = csv.writer(f_object, delimiter = ';')
-            writer_object.writerow(newmember)
-            
-        with open("Members.csv",'r') as csv_file:
-            csv_reader = csv.reader(csv_file)
-            next(csv_reader)
-            OldList = csv_reader
-            tester = 0
-            for line in OldList:
-                print(line)
-   
-   def EditMember(self):
-       print("What is the name of whom's account you want to edit")
-       PersonChosen = input()
-     
-       with open("Members.csv",'r') as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter = ';')
-            ListOfMembers = csv_reader
-            
-            for member in ListOfMembers: 
-                if member[1] == PersonChosen:
-                    print("What do you wich to edit\n")
-                    print("1. Number\n2. GivenName\n3. Surname\n4. StreetAddress\n5. ZipCode\n6. City\n7. EmailAddress\n8. Username\n9. Password\n10. TelephoneNumber")
-                    ChosenEdit = input()
-                    if ChosenEdit == "1":
-                        print("what number do you want to give to the user")
-                        Newnumber = input()
-                        member[0] = Newnumber
 
 #--------------------------------------------------------------------------
+#TO DO:  
+# Save to catalog file json, that is 
+# After every save or edit save to json file
+# Add ability to loan a bookItem from library 
+#
 class catalog:
     def __init__ (self,bookList):
         self.bookList = bookList
@@ -174,8 +82,6 @@ class catalog:
             print("invalid Input, try again")
           
       
-  
-
 
 
     def editBook(self):
@@ -386,5 +292,17 @@ class Library(catalog):
          break
 
 
+# testing 
+book = Book("yeet","holland","notfound","Dutch","notfound",150,"super gilles",24039,2001)
+book2 = Book("yeet","holland","notfound","Dutch","notfound",150,"wowzers",24039,2001)
 
+b = BookItem("yeet","holland","notfound","Dutch","notfound",150,"super gilles",24039,2001)
+b1 = BookItem("yeet","holland","notfound","Dutch","notfound",150,"wowzers",24039,2001)
+lib = Library([])
+cat = catalog([])
+cat.loadJson()
+
+print(cat.viewBooks())
+cat.addBooks
+print(cat.viewBooks())
 
