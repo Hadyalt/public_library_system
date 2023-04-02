@@ -1,17 +1,40 @@
+from dbm import ndbm
 import json
 import csv
-from csv import writer
-from typing import List
-
+import shutil
+from datetime import date
+import os
+from distutils.dir_util import copy_tree
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# ----------------------------------- BackEnd -------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------- -------------------------------------------------------------------------------------------------------------------
 class Person:
    def __init__(self,Username, Password):
      self.Username = Username
      self.Password = Password
 
-   def login():
-       #print("Please give your username") 
-       #username = input()
-       pass
+   def login(self):
+       loggingIn = True
+       print("Welcome to the library system, \nPlease login")
+       while(loggingIn):
+           print("Username: ")
+           username = input()
+           print("Password: ")
+           password = input()
+           if username == "admin" and password == "admin123":
+               return "admin"
+
+           with open("Members.csv",'r') as csv_file:
+                csv_reader = csv.reader(csv_file, delimiter = ";")
+                next(csv_reader)
+                for member in csv_reader:
+                    if member[7] == username and member[8]== password:
+                        user = member
+                        loggingIn = False
+                if loggingIn:
+                    print("Invalid username and/or password, please try again")
+       return user;
+       
    
 class Member(Person):
     def __init__(self,Number,GivenName,Surname,StreetAddress, ZipCode, City, EmailAddress, Username ,Password, TelephoneNumber):
@@ -29,9 +52,85 @@ class Member(Person):
         return iter([self.Number, self.GivenName, self.Surname, self.StreetAddress, self.ZipCode, self.City, self.EmailAddress, self.Username, self.Password, self.TelephoneNumber,])
     def infomember(self):
         return "[0] number: " + self.Number + "\n[1] GivenName: " + self.GivenName + "\n[2] Surname: " + self.Surname +  "\n[3] StreetAddress: " + self.StreetAddress + "\n[4] ZipCode: " + self.ZipCode + "\n[5] ZipCode: " + self.City + "\n[6] EmailAddress: " + self.EmailAddress + "\n[7] Username: " + self.Username + "\n[8] Password: " + self.Password +"\n[9] telephonenumber:" +self.TelephoneNumber
+
 class Admin(Person):
    def __init__(self):
-    Person.__init__(self,"admin","admin123")
+        Person.__init__(self,"admin","admin123")
+
+   def Menu(self):
+       catalog = Catalog([])
+       catalog.loadJson()
+       lib = library([])
+       lib.loadJson()
+       while(True):
+        print("Public Library System \n\n")
+        print("   [1] view entire catalog")
+        print("   [2] search for books in the catalog\n")
+
+        print("   [3] Add a book to catalog")
+        print("   [4] Add multiple Books to catalog")
+        print("   [5] Remove a book from catalog")
+        print("   [6] Edit a book in catalog\n")
+
+        print("   [7] view entire library")
+        print("   [8] search for books in the library\n")
+
+        print("   [9] Add a book to library")
+        print("   [10] Add multiple books to library")
+        print("   [11] Remove a book from library")
+        print("   [12] Edit a book in library\n")
+
+        print("   [13] Add a member to the system")
+        print("   [14] Remove a member from the system")
+        print("   [15] Edit a member in the system\n")
+
+        print("   [16] Load previous system state")
+        print("   [17] Save current system state\n")
+
+        print("   [18] Logout of Admin")
+        
+        choice = input()
+        if choice == "1":
+            catalog.viewBooks()
+        elif choice == "2":
+            catalog.searchBook()
+        elif choice == "3":
+            catalog.addBook()
+        elif choice == "4":
+            catalog.addBooks()
+        elif choice == "5":
+            catalog.delBook()
+        elif choice == "6":
+            catalog.editBook()
+        elif choice == "7":
+            lib.viewBooks()
+        elif choice == "8":
+            lib.searchBook()
+        elif choice == "9":
+            lib.addBook()
+        elif choice == "10":
+            lib.addBooks()
+        elif choice == "11":
+            lib.delBook()
+        elif choice == "12":
+            lib.editBook()
+        elif choice == "13":
+            self.AddMember()
+        elif choice == "14":
+            self.RemoveMember()
+        elif choice == "15":
+            self.EditMember()
+        elif choice == "16":
+            self.RestoreBackup()
+        elif choice == "17":
+            self.CreateBackup()
+        elif choice == "18":
+            break
+        else:
+            print("Invalid choice. Please enter a number from 1 to 18.")
+        print(50 * "\n")
+
+
    def seememberlist(self):
        with open("Members.csv",'r') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter = ";")
@@ -91,7 +190,10 @@ class Admin(Person):
             tester = 0
             for line in OldList:
                 print(line)
-   
+
+   def RemoveMember(self):
+       pass
+
    def EditMember(self):
        print("What is the name of whom's account you want to edit")
        PersonChosen = input()
@@ -110,52 +212,121 @@ class Admin(Person):
                         Newnumber = input()
                         member[0] = Newnumber
 
+   def CreateBackup(self):
+       today = date.today()
+       date_format = today.strftime("%d_%b_%Y_")
+       src_file_names = ('Members.csv', 'Catalog.json', 'Books.json')
+       madeFolder = False
+       serial = 1
+       while not madeFolder:
+           try:
+               os.mkdir("Backups\\" + date_format + str(serial) + '_\\' )
+               date_format = date_format + str(serial) + '_'
+               madeFolder = True
+           except OSError as error:
+               serial += 1
+               pass
+           
+       for src_file_name in src_file_names:
+           src_dir = ''
+           dst_dir = 'Backups\\' + date_format +  '\\'
+
+           src_dir = src_dir+src_file_name
+           dst_file_name = src_file_name
+           dst_dir = dst_dir+date_format+dst_file_name
+                  
+           shutil.copy2(src_dir, dst_dir)
+  
+           print("Backup Successful!")
+   
+   def RestoreBackup(self):
+       i = 0
+       backups = os.listdir("Backups")
+       for _ in backups:
+           print("["+ str(i) +"] " + _)
+           i += 1
+       print("Please pick a backup to be restored")
+       ChosenBackup = input()
+       correct = False
+       while not correct:
+           if ChosenBackup.isnumeric():
+               if int(ChosenBackup) < i and int(ChosenBackup) >= 0:
+                   correct = True
+               else:
+                   print("Please pick a vaild option")
+                   ChosenBackup = input()
+           else:
+               print("Please pick a number")
+               ChosenBackup = input()
+
+       src_file_names = ('Members.csv', 'Catalog.json', 'Books.json')
+       for src_file_name in src_file_names:
+           dst_dir = ''
+           dst_file_name = src_file_name
+           src_file_name = backups[int(ChosenBackup)] + src_file_name
+           src_dir = 'Backups\\' + backups[int(ChosenBackup)] + '\\'  + src_file_name
+           dst_dir = dst_dir+dst_file_name
+                  
+           shutil.copy2(src_dir, dst_dir)
+  
+           print("Restoration Successful!")
+           
 #--------------------------------------------------------------------------
-class catalog:
+#TO DO:  
+# Save to catalog file json, that is 
+# After every save or edit save to json file
+# Add ability to loan a bookItem from library 
+#
+class Catalog:
     def __init__ (self,bookList):
         self.bookList = bookList
     
     def addBook(self):
-      ans = ""
-      while(True):
-        print(self.viewBooks())
-        print("Input author or [x] to exit")
-        ans = input()
-        if ans == "x" or ans == "X":
-            break
-        else:
-            author = ans
-            print("Input country: ")
-            country = input()
-            print("Input imageLink: ")
-            imageLink = input()
-            print("input language: ")
-            language = input()
-            print("input link: ")
-            link = input()
-            print("input pages: ")
-            pages = input()
-            print("input title: ")
-            title = input()
-            print("Input ISBN: ")
-            ISBN = input()
-            print("Input year: ")
-            year = input()
-            
-            book_dict = {"author" : author,"country": country,"imageLink": imageLink,"language": language,"link": link,"pages": pages,"title":title,"ISBN": ISBN,"year":year}
-            catalog_dicts = [Book.__dict__ for book in self.bookList]
-            print(catalog_dicts)
-            catalog_dicts.append(book_dict)
-            with open("Catalog.json","a") as p:
-                json.dump(catalog_dicts,p,indent = 4)
-            
-            if not (book in self.bookList):
-               self.bookList.append(book)
+      
+        with open("Catalog.json","r") as cb:
+            currentBooks = json.load(cb)
+        ans = ""
+        while(True):
+            print(self.viewBooks())
+            print("Input author or [x] to exit")
+            ans = input()
+            if ans == "x" or ans == "X":
+                break
             else:
-               print("Book already in " + self.__class__.__name__)
+                author = ans
+                print("Input country: ")
+                country = input()
+                print("Input imageLink: ")
+                imageLink = input()
+                print("input language: ")
+                language = input()
+                print("input link: ")
+                link = input()
+                print("input pages: ")
+                pages = input()
+                print("input title: ")
+                title = input()
+                print("Input ISBN: ")
+                ISBN = input()
+                print("Input year: ")
+                year = input()
+            
+                book_dict = {"author" : author,"country": country,"imageLink": imageLink,"language": language,"link": link,"pages": pages,"title":title,"ISBN": ISBN,"year":year}
+                catalog_dicts = [Book.__dict__ for book in self.bookList]
+                print(catalog_dicts)
+                catalog_dicts.append(book_dict)
+                with open("Catalog.json","w") as p:
+                    json.dump(catalog_dicts,p,indent = 4)
+            
+                if not (book in self.bookList):
+                    self.bookList.append(book)
+                else:
+                     print("Book already in " + self.__class__.__name__)
     
     def delBook(self):
      
+      with open("Catalog.json","r") as cb:
+         currentBooks = json.load(cb)
       ans = ""
       while(ans != "x" and ans != "X"):
         print(self.viewBooks())
@@ -174,8 +345,6 @@ class catalog:
             print("invalid Input, try again")
           
       
-  
-
 
 
     def editBook(self):
@@ -263,11 +432,13 @@ class catalog:
 
     
     def addBooks(self,jsonName = "Books.json"):
-        self.loadJson()
+
+        with open("Catalog.json","r") as cb:
+            currentBooks = json.load(cb)
+       
         books = open(jsonName)      
         bookz = json.load(books)
         books.close()
-        bookdiclist = []
         for book in bookz:
             author = book['author'] 
             country = book['country']
@@ -279,13 +450,17 @@ class catalog:
             ISBN = book['ISBN']
             year = book['year']
             book1 = Book(author,country,imageLink,language,link,pages,title,ISBN,year)
+            check = False
             for x in self.bookList:
                if x.ISBN == book1.ISBN and x.author == book1.author and x.title == book1.title and x.year == book1.year and book1.country == x.country and x.link == book1.link and x.pages == book1.pages and x.language == book1.language and x.imageLink == book1.imageLink:
-                bookdiclist.append(book)
+                   check = True
+            if check == False:       
+                currentBooks.append(book)
                 self.bookList.append(book1) # make them write to catlog json use if(__class__.__name__ == Catalog add books to cat else add bookitems to library json)
         with open("Catalog.json","w") as p:
-            json.dump(bookdiclist,p,indent = 4)
-        
+            json.dump(currentBooks,p,indent = 4)
+        cb.close()
+
     def viewBooks(self, books = None):
         if books == None:
             books = self.bookList
@@ -358,10 +533,10 @@ class LoanItem(Book):
         self.loaned = False
         
 
-class Library(catalog):
+class library(Catalog):
 
     def __init__ (self,bookList):
-        catalog.__init__(self,bookList)
+        Catalog.__init__(self,bookList)
             
     def viewBooks(self, books = None):
         if books == None:
@@ -379,12 +554,115 @@ class Library(catalog):
             return "---- No books found ----"
         else:
             return view
+    
+    def searchBook(self):
+        return super().searchBook()
 
+    def addBook(self):
+        return super().addBook()
+
+    def editBook(self):
+        return super().editBook()
+
+    def delBook(self):
+        return super().delBook()
+    
     def loanBook(self,username): # needs user to bind loan item to member also update json library 
      ans = ""
      while(ans != "x" and ans != "X"):
          break
 
 
+#testing 
+#book = Book("yeet","holland","notfound","Dutch","notfound",150,"super gilles",24039,2001)
+#book2 = Book("yeet","holland","notfound","Dutch","notfound",150,"wowzers",24039,2001)
 
+#b = BookItem("yeet","holland","notfound","Dutch","notfound",150,"super gilles",24039,2001)
+#b1 = BookItem("yeet","holland","notfound","Dutch","notfound",150,"wowzers",24039,2001)
+#lib = Library([])
+#cat = catalog([])
+#cat.loadJson()
+#print(cat.viewBooks())
+#cat.addBooks()
+#print(cat.viewBooks())
+#user = Admin()
+#user.RestoreBackup()
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# ----------------------------------- frontEnd -------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------- -------------------------------------------------------------------------------------------------------------------
+isLoggedIn = False
+isAdmin= False
+cat = Catalog([])
+person = Person("","")
+temp = person.login()
+if temp == "admin":
+    user = Admin()
+else:
+    user = Member(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9])
 
+user.Menu()
+#cat.loadJson()
+#while(True):
+#    print("Welcome To Our Public Library System")
+#    print("Input the number in between [] to select an option below:")
+    
+#    if isLoggedIn == False:
+#        print("   [1] Login as member")
+#        print("   [2] Login as Library Administrator")
+
+#    if isLoggedIn == True and isAdmin == False:
+#        print("   [1] view entire catalog")
+#        print("   [2] search for books in the catalog")
+#        print("   [3] view entire library")
+#        print("   [4] search for books in the catalog")
+#        print("   [5] Loan a book")
+#        print("   [6] return a loaned book")
+#        print("   [7] Logout of account")
+
+#    if isLoggedIn == True and isAdmin == True:
+#        print("   [1] view entire catalog")
+#        print("   [2] search for books in the catalog\n")
+
+#        print("   [3] Add a book to catalog")
+#        print("   [4] Add multiple Books to catalog")
+#        print("   [5] Remove a book from catalog")
+#        print("   [6] Edit a book in catalog\n")
+
+#        print("   [7] view entire library")
+#        print("   [8] search for books in the library\n")
+
+#        print("   [9] Add a book to library")
+#        print("   [10] Add multiple books to library")
+#        print("   [11] Remove a book from library")
+#        print("   [12] Edit a book in library\n")
+
+#        print("   [13] Add a member to the system")
+#        print("   [14] Remove a member from the system")
+#        print("   [15] Edit a member in the system\n")
+
+#        print("   [16] Load previous system state")
+#        print("   [17] Save current system state\n")
+
+#        print("   [18] Logout of Admin")
+    
+#    ans = input() 
+#    if isLoggedIn == False:
+#         if ans == "1":
+#            person.login()
+#         elif ans == "2":
+#            person.login()
+     
+#    elif isLoggedIn == True and isAdmin == False:
+#        if ans == "1":
+#            cat.viewBooks()
+#        elif ans == "2":
+#            cat.searchBook()
+#    elif isLoggedIn == True and isAdmin == True:
+#        if ans == "1":
+#            cat.viewBooks()
+#        elif ans == "2":
+#            cat.searchBook()
+#    else:
+#         ("Invalid Input or unavailable")
+
+    
