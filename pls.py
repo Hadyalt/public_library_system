@@ -1,6 +1,8 @@
 from dbm import ndbm
+from fileinput import filename
 import json
 import csv
+from pprint import pprint
 import shutil
 from datetime import date
 import os
@@ -80,18 +82,22 @@ class Admin(Person):
         print("   [11] Remove a book from library")
         print("   [12] Edit a book in library\n")
 
-        print("   [13] Add a member to the system")
-        print("   [14] Remove a member from the system")
-        print("   [15] Edit a member in the system\n")
+        print("   [13] View list of members")
+        print("   [14] Add a member to the system")
+        print("   [15] Add multiple members to system")
+        print("   [16] Remove a member from the system")
+        print("   [17] Edit a member in the system\n")
 
-        print("   [16] Load previous system state")
-        print("   [17] Save current system state\n")
+        print("   [18] Load previous system state")
+        print("   [19] Save current system state\n")
 
-        print("   [18] Logout of Admin")
+        print("   [20] Logout of Admin")
         
         choice = input()
         if choice == "1":
-            catalog.viewBooks()
+            print(catalog.viewBooks())
+            print("\nPress enter to return to homepage")
+            input()
         elif choice == "2":
             catalog.searchBook()
         elif choice == "3":
@@ -114,20 +120,26 @@ class Admin(Person):
             lib.delBook()
         elif choice == "12":
             lib.editBook()
-        elif choice == "13":
-            self.AddMember()
+        elif choice =="13":
+            self.seememberlist()
+            print("\nPress enter to return to homepage")
+            input()
         elif choice == "14":
-            self.RemoveMember()
+            self.AddMember()
         elif choice == "15":
-            self.EditMember()
+            self.AddMembers()
         elif choice == "16":
-            self.RestoreBackup()
+            self.RemoveMember()
         elif choice == "17":
-            self.CreateBackup()
+            self.EditMember()
         elif choice == "18":
+            self.RestoreBackup()
+        elif choice == "19":
+            self.CreateBackup()
+        elif choice == "20":
             break
         else:
-            print("Invalid choice. Please enter a number from 1 to 18.")
+            print("Invalid choice. Please enter a number from 1 to 20.")
         print(50 * "\n")
 
 
@@ -136,7 +148,10 @@ class Admin(Person):
             csv_reader = csv.reader(csv_file, delimiter = ";")
             next(csv_reader)
             for member in csv_reader:
-                print(member)
+                if (member != []):
+                    print("[" + member[0] + "]", member[1], member[2])
+            
+
    def AddMember(self):
      
         with open("Members.csv",'r') as csv_file:
@@ -147,7 +162,7 @@ class Admin(Person):
                 print(line)
                 tester +=1
             NewNumber = tester 
-            '''
+            
             print("new GivenName:")
             NewGivenName = input()
             print("new Surname:")
@@ -166,17 +181,10 @@ class Admin(Person):
             NewPassword = input()
             print("new TelephoneNumber")
             NewTelephoneNumber = input()
-            '''
-        print(NewNumber)
-        NewGivenName = "hady"
-        NewSurname = "Al-tamimi"
-        NewStreetAddress = "Klaroen 8"
-        NewZipCode = "2907GB"
-        NewCity = "Rotterdam"
-        NewEmailAddress ="hadyaltamimi03@gmail.com"
-        NewUsername = "hady"
-        NewPassword = "hady123"
-        NewTelephoneNumber = "0612644634"
+            
+        print("If something is wrong please type 'x' to quit, otherwise just press enter")
+        if input() == 'x':
+            return
         newmember = Member(NewNumber, NewGivenName,NewSurname,NewStreetAddress,NewZipCode,NewCity,NewEmailAddress,NewUsername,NewPassword,NewTelephoneNumber)
         # NewMemberList = [NewNumber, NewGivenName,NewSurname,NewStreetAddress,NewZipCode,NewCity,NewEmailAddress,NewUsername,NewPassword,NewTelephoneNumber]
         with open('Members.csv', 'a',newline='') as f_object:
@@ -191,26 +199,75 @@ class Admin(Person):
             for line in OldList:
                 print(line)
 
+   def AddMembers(self):
+       print("Please enter the name of the file (like: 'NewList.csv')")
+       fileName = input();
+       while not(os.path.isfile(fileName) and fileName.endswith(".csv") ):
+           if (os.path.isfile(fileName)):
+               print("That file isn't a csv file, please try again")
+           else:
+               print("That file name doesn't exist, please try again")
+           fileName = input()
+       
+       with open("Members.csv",'r') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter = ';')
+            OldList = csv_reader
+            tester = 0
+            for line in OldList:
+                tester +=1
+      
+       with open("Members.csv",'w') as member_csv:
+           writer_object = csv.writer(member_csv, delimiter = ';')
+           with open(fileName, 'r') as csv_file:
+               csv_reader = csv.reader(csv_file, delimiter = ';')
+               next(csv_reader)
+               for row in csv_reader:
+                   if row != []:
+                       row[0] = tester
+                       tester += 1
+                       writer_object.writerow(row)
+
    def RemoveMember(self):
-       pass
+       self.seememberlist()
+       print("What is the number of the account you want to delete?")
+       PersonChosen = input()
+
+       output = list()
+       with open("Members.csv", 'r') as csv_file:
+           reader = csv.reader(csv_file, delimiter = ';')
+           for row in reader:
+               if row != []:
+                   output.append(row)
+                   compare = row[0]
+                   if row[0] == PersonChosen:
+                      output.remove(row)
+
+       with open("Members.csv", 'w') as csv_file:
+           writer = csv.writer(csv_file, delimiter = ';')
+           writer.writerows(output)
 
    def EditMember(self):
-       print("What is the name of whom's account you want to edit")
+       self.seememberlist()
+       print("What is the number of the account you want to edit?")
        PersonChosen = input()
+
      
        with open("Members.csv",'r') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter = ';')
             ListOfMembers = csv_reader
             
             for member in ListOfMembers: 
-                if member[1] == PersonChosen:
+                if member[0] == PersonChosen:
                     print("What do you wich to edit\n")
                     print("1. Number\n2. GivenName\n3. Surname\n4. StreetAddress\n5. ZipCode\n6. City\n7. EmailAddress\n8. Username\n9. Password\n10. TelephoneNumber")
                     ChosenEdit = input()
-                    if ChosenEdit == "1":
-                        print("what number do you want to give to the user")
-                        Newnumber = input()
-                        member[0] = Newnumber
+                    while not(ChosenEdit in {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}):
+                        print("Please pick a valid option")
+                        ChosenEdit = input()
+                    print("What do you want to change it to?")
+                    NewValue = input()
+                    member[int(ChosenEdit) - 1] = NewValue
+
 
    def CreateBackup(self):
        today = date.today()
@@ -524,7 +581,7 @@ class BookItem(Book):
     
     def __init__(self,author,country,imageLink,language,link,pages,title,ISBN,year):
         Book.__init__(self,author,country,imageLink,language,link,pages,title,ISBN,year)
-        self.amount = 3
+        self.amount = 5
 
 class LoanItem(Book):
     
