@@ -30,9 +30,10 @@ class Person:
                 csv_reader = csv.reader(csv_file, delimiter = ";")
                 next(csv_reader)
                 for member in csv_reader:
-                    if member[7] == username and member[8]== password:
-                        user = member
-                        loggingIn = False
+                    if member != []:
+                        if member[7] == username and member[8]== password:
+                            user = member
+                            loggingIn = False
                 if loggingIn:
                     print("Invalid username and/or password, please try again")
        return user;
@@ -54,6 +55,45 @@ class Member(Person):
         return iter([self.Number, self.GivenName, self.Surname, self.StreetAddress, self.ZipCode, self.City, self.EmailAddress, self.Username, self.Password, self.TelephoneNumber,])
     def infomember(self):
         return "[0] number: " + self.Number + "\n[1] GivenName: " + self.GivenName + "\n[2] Surname: " + self.Surname +  "\n[3] StreetAddress: " + self.StreetAddress + "\n[4] ZipCode: " + self.ZipCode + "\n[5] ZipCode: " + self.City + "\n[6] EmailAddress: " + self.EmailAddress + "\n[7] Username: " + self.Username + "\n[8] Password: " + self.Password +"\n[9] telephonenumber:" +self.TelephoneNumber
+
+    def Menu(self):
+       catalog = Catalog([])
+       catalog.loadJson()
+       lib = library([])
+       lib.loadJson()
+       while(True):
+           print("Hello " + self.GivenName +",Welcome to the Public Library System")
+           print("   [1] view entire catalog")
+           print("   [2] search for books in the catalog\n")
+           print("   [3] view entire library")
+           print("   [4] search for books in the library\n")
+           print("   [5] loan a book")
+           print("   [6] return a book\n")
+           print("   [7] log out")
+
+           choice = input()
+
+           if choice == "1":
+                print(catalog.viewBooks())
+                print("\nPress enter to return to homepage")
+                input()
+           elif choice == "2":
+                catalog.searchBook()
+           elif choice == "3":
+                print(lib.viewBooks())
+                print("\nPress enter to return to homepage")
+                input()
+           elif choice == "4":
+                lib.searchBook()
+           elif choice == "5":
+               pass
+           elif choice == "6":
+               pass
+           elif choice == "7":
+               break
+           else:
+               print(50 * "\n")
+               print("Invalid choice. Please pick a valid option")
 
 class Admin(Person):
    def __init__(self):
@@ -109,7 +149,9 @@ class Admin(Person):
         elif choice == "6":
             catalog.editBook()
         elif choice == "7":
-            lib.viewBooks()
+            print(lib.viewBooks())
+            print("\nPress enter to return to homepage")
+            input()
         elif choice == "8":
             lib.searchBook()
         elif choice == "9":
@@ -139,8 +181,8 @@ class Admin(Person):
         elif choice == "20":
             break
         else:
-            print("Invalid choice. Please enter a number from 1 to 20.")
-        print(50 * "\n")
+            print(50 * "\n")
+            print("Invalid choice. Please pick a valid option")
 
 
    def seememberlist(self):
@@ -158,8 +200,9 @@ class Admin(Person):
             csv_reader = csv.reader(csv_file)
             OldList = csv_reader
             tester = 0
+            print("Current Members")
+            self.seememberlist()
             for line in OldList:
-                print(line)
                 tester +=1
             NewNumber = tester 
             
@@ -214,9 +257,10 @@ class Admin(Person):
             OldList = csv_reader
             tester = 0
             for line in OldList:
-                tester +=1
+                if line != []:
+                    tester +=1
       
-       with open("Members.csv",'w') as member_csv:
+       with open("Members.csv",'a',newline='') as member_csv:
            writer_object = csv.writer(member_csv, delimiter = ';')
            with open(fileName, 'r') as csv_file:
                csv_reader = csv.reader(csv_file, delimiter = ';')
@@ -250,23 +294,29 @@ class Admin(Person):
        self.seememberlist()
        print("What is the number of the account you want to edit?")
        PersonChosen = input()
-
+       output = list()
      
        with open("Members.csv",'r') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter = ';')
             ListOfMembers = csv_reader
             
             for member in ListOfMembers: 
-                if member[0] == PersonChosen:
-                    print("What do you wich to edit\n")
-                    print("1. Number\n2. GivenName\n3. Surname\n4. StreetAddress\n5. ZipCode\n6. City\n7. EmailAddress\n8. Username\n9. Password\n10. TelephoneNumber")
-                    ChosenEdit = input()
-                    while not(ChosenEdit in {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}):
-                        print("Please pick a valid option")
+                if member != []:
+                    if member[0] == PersonChosen:
+                        print("What do you wich to edit\n")
+                        print("1. Number\n2. GivenName\n3. Surname\n4. StreetAddress\n5. ZipCode\n6. City\n7. EmailAddress\n8. Username\n9. Password\n10. TelephoneNumber")
                         ChosenEdit = input()
-                    print("What do you want to change it to?")
-                    NewValue = input()
-                    member[int(ChosenEdit) - 1] = NewValue
+                        while not(ChosenEdit in {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}):
+                            print("Please pick a valid option")
+                            ChosenEdit = input()
+                        print("What do you want to change it to?")
+                        NewValue = input()
+                        member[int(ChosenEdit) - 1] = NewValue
+                    output.append(member)
+
+            with open("Members.csv", 'w') as csv_file:
+                writer = csv.writer(csv_file, delimiter = ';')
+                writer.writerows(output)
 
 
    def CreateBackup(self):
@@ -368,21 +418,31 @@ class Catalog:
                 print("Input year: ")
                 year = input()
             
-                book_dict = {"author" : author,"country": country,"imageLink": imageLink,"language": language,"link": link,"pages": pages,"title":title,"ISBN": ISBN,"year":year}
-                catalog_dicts = [Book.__dict__ for book in self.bookList]
-                print(catalog_dicts)
-                catalog_dicts.append(book_dict)
-                with open("Catalog.json","w") as p:
-                    json.dump(catalog_dicts,p,indent = 4)
-            
-                if not (book in self.bookList):
-                    self.bookList.append(book)
+                if self.__class__.__name__ == "Catalog":
+                    book1 = {"author" : author,"country": country,"imageLink": imageLink,"language": language,"link": link,"pages": pages,"title":title,"ISBN": ISBN,"year":year}
+                    book2 = Book(author,country,imageLink,language,link,pages,title,ISBN,year)
+                else:
+                    book1 = {"author" : author,"country": country,"imageLink": imageLink,"language": language,"link": link,"pages": pages,"title":title,"ISBN": ISBN,"year":year, "amount": 5}
+                    book2 = BookItem(author,country,imageLink,language,link,pages,title,ISBN,year)
+
+                check = False
+                for x in self.bookList:
+                   if x.ISBN == book1["ISBN"] and x.author == book1["author"] and x.title == book1["title"] and x.year == book1["year"] and book1.country == x["country"] and x.link == book1["link"] and x.pages == book1["pages"] and x.language == book1["language"] and x.imageLink == book1["imageLink"]:
+                       check = True
+                if check == False:       
+                    currentBooks.append(book1)
+                    self.bookList.append(book2)
                 else:
                      print("Book already in " + self.__class__.__name__)
+
+                fileName = self.__class__.__name__ + ".json"
+                with open(fileName,"w") as p:
+                    json.dump(currentBooks, p ,indent = 4)
+                cb.close()
     
-    def delBook(self):
+    def delBook(self, jsonName = "Catalog.json"):
      
-      with open("Catalog.json","r") as cb:
+      with open(jsonName,"r") as cb:
          currentBooks = json.load(cb)
       ans = ""
       while(ans != "x" and ans != "X"):
@@ -404,7 +464,7 @@ class Catalog:
       
 
 
-    def editBook(self):
+    def editBook(self, jsonName = "Catalog.json"):
       ans = ""
       while(ans != "x" and ans != "X"):
         print(self.viewBooks())
@@ -573,7 +633,7 @@ class Book:
         self.year = year
     
     def GetInfo(self):
-        return "[0] Title: " + self.title + "\n[1] Written by: " + self.author + "\n[2] country of origin: " + self.country +  "\n[3] Pages: " + str(self.pages) + "\n[4] Written in: " + self.language + "\n[5] ISBN: " + str(self.ISBN) + "\n[6] Link: " + self.link + "[7] Year of publication: " + str(self.year) + "\n[8] imageLink: " + self.imageLink +"\n"
+        return "[0] Title: " + self.title + "\n[1] Written by: " + self.author + "\n[2] country of origin: " + self.country +  "\n[3] Pages: " + str(self.pages) + "\n[4] Written in: " + self.language + "\n[5] ISBN: " + str(self.ISBN) + "\n[6] Link: " + self.link + "\n[7] Year of publication: " + str(self.year) + "\n[8] imageLink: " + self.imageLink +"\n"
     def GetBasic(self):
         return "|Title: " + self.title + " |Written by: " + self.author
     
@@ -618,12 +678,68 @@ class library(Catalog):
     def addBook(self):
         return super().addBook()
 
+    def addBooks(self,jsonName = "Books.json"):
+
+        with open("Library.json","r") as cb:
+            currentBooks = json.load(cb)
+       
+        books = open(jsonName)      
+        bookz = json.load(books)
+        books.close()
+        for book in bookz:
+            author = book['author'] 
+            country = book['country']
+            imageLink = book['imageLink']
+            language = book['language']
+            link = book['link']
+            pages = book['pages']
+            title = book['title']
+            ISBN = book['ISBN']
+            year = book['year']
+            book['amount'] = 5
+            book1 = BookItem(author,country,imageLink,language,link,pages,title,ISBN,year)
+            check = False
+            for x in self.bookList:
+               if x.ISBN == book1.ISBN and x.author == book1.author and x.title == book1.title and x.year == book1.year and book1.country == x.country and x.link == book1.link and x.pages == book1.pages and x.language == book1.language and x.imageLink == book1.imageLink:
+                   check = True
+            if check == False:       
+                currentBooks.append(book)
+                self.bookList.append(book1) # make them write to catlog json use if(__class__.__name__ == Catalog add books to cat else add bookitems to library json)
+        with open("Library.json","w") as p:
+            json.dump(currentBooks,p,indent = 4)
+        cb.close()
+
     def editBook(self):
-        return super().editBook()
+        return super().editBook("Library.json")
 
     def delBook(self):
-        return super().delBook()
+        return super().delBook("Library.json")
     
+    def loadJson(self):
+       try:
+            books = open("Library.json")      
+            bookz = json.load(books)
+            books.close()
+            for book in bookz:
+                author = book['author'] 
+                country = book['country']
+                imageLink = book['imageLink']
+                language = book['language']
+                link = book['link']
+                pages = book['pages']
+                title = book['title']
+                ISBN = book['ISBN']
+                year = book['year']
+                book1 = BookItem(author,country,imageLink,language,link,pages,title,ISBN,year)
+                check = False
+                for x in self.bookList:
+                    if x.ISBN == book1.ISBN and x.author == book1.author and x.title == book1.title and x.year == book1.year and book1.country == x.country and x.link == book1.link and x.pages == book1.pages and x.language == book1.language and x.imageLink == book1.imageLink:
+                        check = True
+                if check == False:
+                    self.bookList.append(book1)
+       except:
+           print("no books found")
+
     def loanBook(self,username): # needs user to bind loan item to member also update json library 
      ans = ""
      while(ans != "x" and ans != "X"):
